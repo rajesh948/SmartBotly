@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { User, Save, AlertCircle, CheckCircle, Lock } from 'lucide-react';
-import api from '../../utils/api';
+import { api } from '../../services';
 
 /**
  * Client Profile Page

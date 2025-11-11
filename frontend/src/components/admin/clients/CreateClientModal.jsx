@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, UserPlus, AlertCircle, Check, Copy } from 'lucide-react';
-import api from '../../../utils/api';
+import { api } from '../../../services';
 
 /**
  * Create Client Modal

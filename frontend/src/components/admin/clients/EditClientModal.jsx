@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Save, AlertCircle, Key } from 'lucide-react';
-import api from '../../../utils/api';
+import { api } from '../../../services';
 
 /**
  * Edit Client Modal

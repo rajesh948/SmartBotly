@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Bot, Mail, Lock } from 'lucide-react';
-import api from '../../utils/api';
+import { api } from '../../services';
 import { setUser } from '../../redux/slices/userSlice';
 
 const Login = () => {

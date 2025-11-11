@@ -88,6 +88,15 @@ export const getClientProfile = async (
       return;
     }
 
+    // Check if client account is active
+    if (clientUser.status !== "Active") {
+      res.status(403).json({
+        message: "Your account has been deactivated. Please contact admin.",
+        accountDeactivated: true
+      });
+      return;
+    }
+
     res.json({
       user: {
         id: clientUser._id,

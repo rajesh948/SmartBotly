@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Users, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Search, RefreshCw } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, Search, RefreshCw, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import api from '../../../utils/api';
-import { fetchClients } from '../../../redux/slices/clientsSlice';
+import { api } from '../../../services';
+import { fetchClients, setSelectedClient } from '../../../redux/slices/clientsSlice';
 import CreateClientModal from './CreateClientModal';
 import EditClientModal from './EditClientModal';
+import toast from 'react-hot-toast';
 
 /**
  * Admin Client List Component
@@ -13,12 +14,12 @@ import EditClientModal from './EditClientModal';
  */
 export default function ClientList() {
   const dispatch = useDispatch();
-  const { list: clients, loading, error } = useSelector((state) => state.clients);
+  const { list: clients, loading, error, selectedClient: activeClient } = useSelector((state) => state.clients);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [editingClient, setEditingClient] = useState(null);
 
   useEffect(() => {
     // Fetch clients on mount (Redux will handle caching)
@@ -55,8 +56,13 @@ export default function ClientList() {
   };
 
   const handleEdit = (client) => {
-    setSelectedClient(client);
+    setEditingClient(client);
     setShowEditModal(true);
+  };
+
+  const handleSelectClient = (client) => {
+    dispatch(setSelectedClient(client));
+    toast.success(`Selected client: ${client.company}`);
   };
 
   const filteredClients = clients.filter(
@@ -171,65 +177,88 @@ export default function ClientList() {
                   </td>
                 </tr>
               ) : (
-                filteredClients.map((client) => (
-                  <tr key={client._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-gray-900">{client.name}</p>
-                        <p className="text-sm text-gray-500">{client.email}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900">{client.company}</p>
-                      {client.phone && (
-                        <p className="text-sm text-gray-500">{client.phone}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          client.status === 'Active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {client.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {format(new Date(client.createdAt), 'MMM dd, yyyy')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleToggleStatus(client._id)}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title={client.status === 'Active' ? 'Deactivate' : 'Activate'}
+                filteredClients.map((client) => {
+                  const isSelected = activeClient?._id === client._id;
+                  return (
+                    <tr
+                      key={client._id}
+                      className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {isSelected && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                          <div>
+                            <p className="font-medium text-gray-900">{client.name}</p>
+                            <p className="text-sm text-gray-500">{client.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-900">{client.company}</p>
+                        {client.phone && (
+                          <p className="text-sm text-gray-500">{client.phone}</p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            client.status === 'Active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
                         >
-                          {client.status === 'Active' ? (
-                            <ToggleRight className="w-5 h-5" />
-                          ) : (
-                            <ToggleLeft className="w-5 h-5" />
+                          {client.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {format(new Date(client.createdAt), 'MMM dd, yyyy')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          {!isSelected && client.status === 'Active' && (
+                            <button
+                              onClick={() => handleSelectClient(client)}
+                              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                              title="Select Client"
+                            >
+                              Select
+                            </button>
                           )}
-                        </button>
-                        <button
-                          onClick={() => handleEdit(client)}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(client._id)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {isSelected && (
+                            <span className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg font-medium">
+                              Selected
+                            </span>
+                          )}
+                          <button
+                            onClick={() => handleToggleStatus(client._id)}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title={client.status === 'Active' ? 'Deactivate' : 'Activate'}
+                          >
+                            {client.status === 'Active' ? (
+                              <ToggleRight className="w-5 h-5" />
+                            ) : (
+                              <ToggleLeft className="w-5 h-5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleEdit(client)}
+                            className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(client._id)}
+                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -247,16 +276,16 @@ export default function ClientList() {
         />
       )}
 
-      {showEditModal && selectedClient && (
+      {showEditModal && editingClient && (
         <EditClientModal
-          client={selectedClient}
+          client={editingClient}
           onClose={() => {
             setShowEditModal(false);
-            setSelectedClient(null);
+            setEditingClient(null);
           }}
           onSuccess={() => {
             setShowEditModal(false);
-            setSelectedClient(null);
+            setEditingClient(null);
             dispatch(fetchClients(true)); // Force refresh
           }}
         />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../utils/api';
+import { api } from '../../services';
 import { Bot, User, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 

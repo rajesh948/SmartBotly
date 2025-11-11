@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { HelpCircle, Plus, Edit2, Trash2, Search, X, ChevronDown, ChevronUp } from 'lucide-react';
-import api from '../../utils/api';
+import { api } from '../../services';
 
 /**
  * Client FAQs Page

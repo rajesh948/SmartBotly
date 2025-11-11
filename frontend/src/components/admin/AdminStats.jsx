@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../utils/api';
+import { api } from '../../services';
 import { Users, Package, MessageCircle, ShoppingCart, FileText, TrendingUp } from 'lucide-react';
 
 const AdminStats = () => {

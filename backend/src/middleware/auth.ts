@@ -13,6 +13,7 @@ export interface AuthRequest extends Request {
     role: "admin" | "client";
     clientId?: string;
   };
+  file?: Express.Multer.File;
 }
 
 /**
@@ -71,4 +72,41 @@ export const requireClient = (
     return;
   }
   next();
+};
+
+/**
+ * Middleware to check if client account is active
+ */
+export const checkClientStatus = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (req.user?.role !== "client") {
+      next();
+      return;
+    }
+
+    const ClientUser = require("../models/ClientUser").default;
+    const clientUser = await ClientUser.findById(req.user.id).select("status");
+
+    if (!clientUser) {
+      res.status(404).json({ message: "Client not found" });
+      return;
+    }
+
+    if (clientUser.status !== "Active") {
+      res.status(403).json({
+        message: "Your account has been deactivated. Please contact admin.",
+        accountDeactivated: true
+      });
+      return;
+    }
+
+    next();
+  } catch (error) {
+    console.error("Check client status error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Package, HelpCircle, TrendingUp, Activity } from 'lucide-react';
-import api from '../../utils/api';
+import { api } from '../../services';
 
 /**
  * Client Home/Dashboard Page

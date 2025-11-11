@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import api from '../../utils/api';
+import { api } from '../../services';
 import { MessageCircle, Search } from 'lucide-react';
 import ChatWindow from './ChatWindow';
 

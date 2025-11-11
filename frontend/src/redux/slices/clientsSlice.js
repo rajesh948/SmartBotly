@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../utils/api';
+import { api } from '../../services';
 
 // Async thunk to fetch clients
 export const fetchClients = createAsyncThunk(
@@ -36,6 +36,7 @@ const clientsSlice = createSlice({
   name: 'clients',
   initialState: {
     list: [],
+    selectedClient: null,
     loading: false,
     error: null,
     lastFetched: null,
@@ -44,6 +45,12 @@ const clientsSlice = createSlice({
     clearClients: (state) => {
       state.list = [];
       state.lastFetched = null;
+    },
+    setSelectedClient: (state, action) => {
+      state.selectedClient = action.payload;
+    },
+    clearSelectedClient: (state) => {
+      state.selectedClient = null;
     },
   },
   extraReducers: (builder) => {
@@ -71,5 +78,5 @@ const clientsSlice = createSlice({
   },
 });
 
-export const { clearClients } = clientsSlice.actions;
+export const { clearClients, setSelectedClient, clearSelectedClient } = clientsSlice.actions;
 export default clientsSlice.reducer;

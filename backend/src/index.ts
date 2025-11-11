@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
 import { connectDB } from './config/db';
 
 // Import routes
@@ -15,6 +16,7 @@ import clientRoutes from './routes/clients';
 import webhookRoutes from './routes/webhook';
 import clientAuthRoutes from './routes/clientAuth';
 import adminClientRoutes from './routes/adminClients';
+import productRoutes from './routes/products';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +60,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ============================================
+// Static Files - Serve Uploads
+// ============================================
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// ============================================
 // Health Check
 // ============================================
 
@@ -79,6 +87,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.use('/api/client', clientAuthRoutes);
 app.use('/api/admin/clients', adminClientRoutes);
+app.use('/api/products', productRoutes);
 
 // ============================================
 // Error Handling
@@ -141,4 +150,5 @@ const startServer = async (): Promise<void> => {
 startServer();
 
 export default app;
+
 

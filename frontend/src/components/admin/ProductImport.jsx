@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import api from '../../utils/api';
+import { api } from '../../services';
 import toast from 'react-hot-toast';
 import { Upload, Download } from 'lucide-react';
 import { fetchClients } from '../../redux/slices/clientsSlice';
