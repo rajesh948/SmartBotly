@@ -12,6 +12,7 @@ import {
   BarChart3,
   X,
   Building2,
+  HelpCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
     { id: 'clients', name: 'Clients', icon: Users, path: '/admin', requiresClient: false },
     { id: 'prompts', name: 'Prompts', icon: MessageSquare, path: '/admin/prompts', requiresClient: true },
     { id: 'products', name: 'Products', icon: Package, path: '/admin/products', requiresClient: true },
+    { id: 'faqs', name: 'FAQs', icon: HelpCircle, path: '/admin/faqs', requiresClient: true },
     { id: 'simulator', name: 'Chat Simulator', icon: Bot, path: '/admin/simulator', requiresClient: true },
     { id: 'stats', name: 'Statistics', icon: BarChart3, path: '/admin/stats', requiresClient: true },
   ];

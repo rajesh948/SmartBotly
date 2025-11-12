@@ -1,35 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import { HelpCircle, Plus, Edit2, Trash2, Search, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { api } from '../../services';
+import { useDispatch, useSelector } from 'react-redux';
+import { HelpCircle, Plus, Edit2, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { fetchFAQs, createFAQ, updateFAQ, deleteFAQ, fetchFAQCategories, clearError } from '../../redux/slices/faqsSlice';
+import FAQForm from '../../components/shared/FAQForm';
 
 /**
  * Client FAQs Page
  * Allows clients to view and manage their own FAQs
  */
 export default function ClientFAQs() {
-  const { user } = useOutletContext();
-  const [faqs, setFaqs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { list: faqs, loading, actionLoading, categories, error } = useSelector((state) => state.faqs);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
   const [expandedFaq, setExpandedFaq] = useState(null);
 
   useEffect(() => {
-    fetchFaqs();
-  }, []);
+    dispatch(fetchFAQs());
+    dispatch(fetchFAQCategories());
+  }, [dispatch]);
 
-  const fetchFaqs = async () => {
-    try {
-      const response = await api.get('/faqs');
-      setFaqs(response.data.faqs);
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Note: Removed global error toast for fetch operations
+  // Errors are now only shown for user actions (create/update/delete)
 
   const handleDelete = async (faqId) => {
     if (!window.confirm('Are you sure you want to delete this FAQ?')) {
@@ -37,11 +32,10 @@ export default function ClientFAQs() {
     }
 
     try {
-      await api.delete(`/faqs/${faqId}`);
-      fetchFaqs();
-    } catch (error) {
-      console.error('Error deleting FAQ:', error);
-      alert('Failed to delete FAQ');
+      await dispatch(deleteFAQ(faqId)).unwrap();
+      toast.success('FAQ deleted successfully');
+    } catch (err) {
+      // Error handled by Redux
     }
   };
 
@@ -55,9 +49,19 @@ export default function ClientFAQs() {
     setEditingFaq(null);
   };
 
-  const handleSuccess = () => {
-    handleCloseModal();
-    fetchFaqs();
+  const handleSubmitFAQ = async (faqData) => {
+    try {
+      if (editingFaq) {
+        await dispatch(updateFAQ({ faqId: editingFaq._id, faqData })).unwrap();
+        toast.success('FAQ updated successfully');
+      } else {
+        await dispatch(createFAQ(faqData)).unwrap();
+        toast.success('FAQ created successfully');
+      }
+      handleCloseModal();
+    } catch (err) {
+      // Error handled by useEffect
+    }
   };
 
   const toggleFaq = (faqId) => {
@@ -88,7 +92,7 @@ export default function ClientFAQs() {
             My FAQs
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage frequently asked questions
+            Manage frequently asked questions for your customers
           </p>
         </div>
         <button
@@ -98,6 +102,18 @@ export default function ClientFAQs() {
           <Plus className="w-5 h-5" />
           Add FAQ
         </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <p className="text-sm text-gray-600">Total FAQs</p>
+          <p className="text-2xl font-bold text-gray-900">{faqs.length}</p>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <p className="text-sm text-gray-600">Categories</p>
+          <p className="text-2xl font-bold text-gray-900">{categories.length}</p>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -141,9 +157,14 @@ export default function ClientFAQs() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {faq.question}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {faq.question}
+                        </h3>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                          {faq.category}
+                        </span>
+                      </div>
                       {expandedFaq === faq._id && (
                         <p className="mt-3 text-gray-600 leading-relaxed">
                           {faq.answer}
@@ -178,128 +199,13 @@ export default function ClientFAQs() {
 
       {/* FAQ Modal */}
       {showModal && (
-        <FaqModal
+        <FAQForm
           faq={editingFaq}
+          onSubmit={handleSubmitFAQ}
           onClose={handleCloseModal}
-          onSuccess={handleSuccess}
+          loading={actionLoading}
         />
       )}
-    </div>
-  );
-}
-
-/**
- * FAQ Modal Component
- * Create or Edit FAQ
- */
-function FaqModal({ faq, onClose, onSuccess }) {
-  const [formData, setFormData] = useState({
-    question: faq?.question || '',
-    answer: faq?.answer || '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      if (faq) {
-        await api.put(`/faqs/${faq._id}`, formData);
-      } else {
-        await api.post('/faqs', formData);
-      }
-      onSuccess();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save FAQ');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">
-            {faq ? 'Edit FAQ' : 'Add New FAQ'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Question *
-            </label>
-            <input
-              type="text"
-              name="question"
-              value={formData.question}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter question"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Answer *
-            </label>
-            <textarea
-              name="answer"
-              value={formData.answer}
-              onChange={handleChange}
-              required
-              rows="6"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter answer"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Saving...' : faq ? 'Update FAQ' : 'Add FAQ'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

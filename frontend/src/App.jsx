@@ -12,6 +12,7 @@ import ClientProfile from './pages/client/ClientProfile';
 import ClientList from './components/admin/clients/ClientList';
 import PromptEditor from './components/admin/PromptEditor';
 import AdminProducts from './components/admin/AdminProducts';
+import AdminFAQs from './components/admin/AdminFAQs';
 import ChatSimulator from './components/admin/ChatSimulator';
 import AdminStats from './components/admin/AdminStats';
 
@@ -101,6 +102,7 @@ function App() {
           <Route path="clients" element={<ClientList />} />
           <Route path="prompts" element={<PromptEditor />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="faqs" element={<AdminFAQs />} />
           <Route path="simulator" element={<ChatSimulator />} />
           <Route path="stats" element={<AdminStats />} />
         </Route>

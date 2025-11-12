@@ -34,12 +34,8 @@ export default function AdminProducts() {
     }
   }, [dispatch, selectedClient]);
 
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      dispatch(clearError());
-    }
-  }, [error, dispatch]);
+  // Note: Removed global error toast for fetch operations
+  // Errors are now only shown for user actions (create/update/delete)
 
   const handleAddProduct = () => {
     setEditingProduct(null);

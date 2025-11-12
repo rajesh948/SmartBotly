@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import ChatInbox from './ChatInbox';
 import ProductCatalog from './ProductCatalog';
-import FAQEditor from './FAQEditor';
+import ClientFAQs from '../../pages/client/ClientFAQs';
 import ClientSettings from './Settings';
 
 const ClientDashboard = () => {
@@ -88,7 +88,7 @@ const ClientDashboard = () => {
         <Routes>
           <Route path="/" element={<ChatInbox />} />
           <Route path="/products" element={<ProductCatalog />} />
-          <Route path="/faqs" element={<FAQEditor />} />
+          <Route path="/faqs" element={<ClientFAQs />} />
           <Route path="/settings" element={<ClientSettings />} />
         </Routes>
       </div>

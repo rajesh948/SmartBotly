@@ -17,6 +17,7 @@ import webhookRoutes from './routes/webhook';
 import clientAuthRoutes from './routes/clientAuth';
 import adminClientRoutes from './routes/adminClients';
 import productRoutes from './routes/products';
+import faqRoutes from './routes/faqs';
 
 // Load environment variables
 dotenv.config();
@@ -88,6 +89,7 @@ app.use('/api/webhook', webhookRoutes);
 app.use('/api/client', clientAuthRoutes);
 app.use('/api/admin/clients', adminClientRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/faqs', faqRoutes);
 
 // ============================================
 // Error Handling
